@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using MockApi.Application;
 
 namespace MockApi.Presentation;
@@ -12,9 +14,12 @@ public class Program
         builder.Services.AddAuthorization();
 
         builder.Services.AddControllers();
+        builder.Services.AddFluentValidationAutoValidation();
+        builder.Services.AddValidatorsFromAssemblyContaining<MockDataRequestValidator>();
         builder.Services.AddServices();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
 
         var app = builder.Build();
 

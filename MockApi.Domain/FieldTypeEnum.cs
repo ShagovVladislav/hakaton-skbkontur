@@ -11,9 +11,8 @@ public enum FieldTypeEnum
     Date,
     DateTime,
     FirstName,
-    LastName,
-    MiddleName,
-    FullName,
-    Email,
-    PhoneNumber
+    Double,
+    Float,
+    Decimal, 
+    Array
 }
