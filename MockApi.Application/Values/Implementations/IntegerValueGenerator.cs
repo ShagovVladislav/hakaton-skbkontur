@@ -28,7 +28,7 @@ public class IntegerValueGenerator : IValueGenerator
 
     public bool CanHandle(FieldTypeEnum value)
     {
-        return value == FieldTypeEnum.Integer;
+        return value == _fieldType;
     }
 
     public object GenerateUntyped() => Generate();

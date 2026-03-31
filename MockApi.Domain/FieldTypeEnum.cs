@@ -10,4 +10,9 @@ public enum FieldTypeEnum
     Boolean,
     Date,
     DateTime,
+    Double,
+    Float,
+    Decimal, 
+    Array,
+    Guid
 }

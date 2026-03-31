@@ -16,7 +16,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValueGenerator, BooleanValueGenerator>();
         services.AddScoped<IValueGenerator, DateTimeValueGenerator>();
         services.AddScoped<IValueGenerator, IntegerValueGenerator>();
-
+        services.AddScoped<IValueGenerator, DateTimeValueGenerator>();
+        services.AddScoped<IValueGenerator, DecimalValueGenerator>();
+        services.AddScoped<IValueGenerator, FloatValueGenerator>();
+        services.AddScoped<IValueGenerator, GuidValueGenerator>();
         
         services.AddScoped<IMockService, MockService>();
 
