@@ -3,12 +3,12 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class DateTimeGenerationalValue : IGenerationalValue
+public class DateTimeValueGenerator : IValueGenerator
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.DateTime;
 
-    public DateTimeGenerationalValue(Random? random = null)
+    public DateTimeValueGenerator(Random? random = null)
     {
         _random = random ?? new Random();
     }
@@ -24,4 +24,6 @@ public class DateTimeGenerationalValue : IGenerationalValue
     {
         return value == _fieldType;
     }
+
+    public object GenerateUntyped() => Generate();
 }

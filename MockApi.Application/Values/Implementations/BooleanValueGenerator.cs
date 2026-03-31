@@ -3,12 +3,12 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class BooleanGenerationalValue : IGenerationalValue
+public class BooleanValueGenerator : IValueGenerator
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Boolean;
 
-    public BooleanGenerationalValue(Random? random = null)
+    public BooleanValueGenerator(Random? random = null)
     {
         _random = random ?? new Random();
     }
@@ -22,4 +22,6 @@ public class BooleanGenerationalValue : IGenerationalValue
     {
         return value == _fieldType;
     }
+
+    public object GenerateUntyped() => Generate();
 }
