@@ -11,7 +11,6 @@ public enum FieldTypeEnum
     Double,
     DateTime,
     Guid,
-    Double,
     Float,
     Decimal,
     Array
