@@ -8,10 +8,14 @@ public class FloatValueGenerator(Random? random) : IValueGenerator
 {
     private readonly Random _random = random ?? new Random();
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Float;
+    private int _min;
+    private int _max = 100;
 
     public object Generate(FieldConfig? config)
     {
-        return (float)_random.NextDouble();
+        var min = config?.MinValue ?? _min;
+        var max = config?.MaxValue ?? _max;
+        return _random.NextDouble() * (max - min) + min;
     }
 
     public bool CanHandle(FieldTypeEnum value)
@@ -21,8 +25,6 @@ public class FloatValueGenerator(Random? random) : IValueGenerator
 
     public IValueGenerator WithMode(StringMode mode)
     {
-        throw new NotImplementedException();
+        return this;
     }
-
-    public object GenerateUntyped() => Generate(null);
 }

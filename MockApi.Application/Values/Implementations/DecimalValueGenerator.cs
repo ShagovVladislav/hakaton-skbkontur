@@ -7,10 +7,14 @@ namespace MockApi.Application.Values.Implementations;
 public class DecimalValueGenerator(Random random) : IValueGenerator
 {
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Decimal;
+    private int _min;
+    private int _max = 100;
 
     public object Generate(FieldConfig? config)
     {
-        return (Decimal)random.NextDouble();
+        var min = config?.MinValue ?? _min;
+        var max = config?.MaxValue ?? _max;
+        return (decimal)random.NextDouble() * (max - min) + min;
     }
 
     public bool CanHandle(FieldTypeEnum value)
@@ -20,8 +24,6 @@ public class DecimalValueGenerator(Random random) : IValueGenerator
 
     public IValueGenerator WithMode(StringMode mode)
     {
-        throw new NotImplementedException();
+        return this;
     }
-
-    public object GenerateUntyped() => Generate(null);
 }

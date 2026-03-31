@@ -17,14 +17,12 @@ public class DoubleValueGenerator : IValueGenerator
         _min = min;
         _max = max;
     }
-
-    public DoubleValueGenerator WithMin(double min) => new DoubleValueGenerator(_random, min, _max);
-    public DoubleValueGenerator WithMax(double max) => new DoubleValueGenerator(_random, _min, max);
-    public DoubleValueGenerator WithRange(double min, double max) => new DoubleValueGenerator(_random, min, max);
-
+    
     public object Generate(FieldConfig? config)
     {
-        return _random.NextDouble() * (_max - _min) + _min;
+        var min = config?.MinValue ?? _min;
+        var max = config?.MaxValue ?? _max;
+        return _random.NextDouble() * (max - min) + min;
     }
 
     public bool CanHandle(FieldTypeEnum value)
@@ -34,8 +32,6 @@ public class DoubleValueGenerator : IValueGenerator
 
     public IValueGenerator WithMode(StringMode mode)
     {
-        throw new NotImplementedException();
+        return this;
     }
-
-    public object GenerateUntyped() => Generate(null);
 }

@@ -29,8 +29,6 @@ public class DateValueGenerator : IValueGenerator
 
     public IValueGenerator WithMode(StringMode mode)
     {
-        throw new NotImplementedException();
+        return this;
     }
-
-    public object GenerateUntyped() => Generate(null);
 }
