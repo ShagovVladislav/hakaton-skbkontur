@@ -5,7 +5,7 @@ using MockApi.Application.Services.Abstractions;
 namespace MockApi.Presentation.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("/api/[controller]")]
 public class MockController(IMockService mockService) : ControllerBase
 {
     [HttpPost]
