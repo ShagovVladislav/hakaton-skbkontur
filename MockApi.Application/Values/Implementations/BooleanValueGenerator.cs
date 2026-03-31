@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class BooleanValueGenerator : IValueGenerator<bool>
+public class BooleanValueGenerator : IValueGenerator
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Boolean;
@@ -13,7 +13,7 @@ public class BooleanValueGenerator : IValueGenerator<bool>
         _random = random ?? new Random();
     }
 
-    public bool Generate()
+    public object Generate()
     {
         return _random.Next() % 2 == 0;
     }

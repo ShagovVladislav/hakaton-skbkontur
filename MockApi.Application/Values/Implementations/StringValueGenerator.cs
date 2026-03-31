@@ -4,7 +4,7 @@ using MockApi.Infrastructure.StorageProviders.Abstractions;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class StringValueGenerator : IValueGenerator<string>
+public class StringValueGenerator : IValueGenerator
 {
     private readonly Random _random;
     private readonly IStorageProvider _storageProvider;
@@ -25,7 +25,7 @@ public class StringValueGenerator : IValueGenerator<string>
         return value == FieldTypeEnum.String;
     }
 
-    public string Generate() => _mode switch
+    public object Generate() => _mode switch
     {
         StringMode.FirstName => PickRandom(_storageProvider.GetValues("firstNames")),
         StringMode.LastName => PickRandom(_storageProvider.GetValues("lastNames")),

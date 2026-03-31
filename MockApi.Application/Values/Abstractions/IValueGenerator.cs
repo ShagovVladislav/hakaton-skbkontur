@@ -2,8 +2,8 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Abstractions;
 
-public interface IValueGenerator<out T>
+public interface IValueGenerator
 {
-    public T Generate();
+    public object Generate();
     bool CanHandle(FieldTypeEnum value);
 }

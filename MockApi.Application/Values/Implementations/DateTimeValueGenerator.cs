@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class DateTimeValueGenerator : IValueGenerator<DateTime>
+public class DateTimeValueGenerator : IValueGenerator
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.DateTime;
@@ -13,7 +13,7 @@ public class DateTimeValueGenerator : IValueGenerator<DateTime>
         _random = random ?? new Random();
     }
 
-    public DateTime Generate()
+    public object Generate()
     {
         var start = new DateTime(1995, 1, 1);
         var range = (DateTime.Today - start).Days;

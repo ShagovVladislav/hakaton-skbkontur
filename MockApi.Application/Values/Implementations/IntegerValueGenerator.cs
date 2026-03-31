@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class IntegerValueGenerator : IValueGenerator<int>
+public class IntegerValueGenerator : IValueGenerator
 {
     private readonly Random _random;
     private readonly int _min = 0;
@@ -21,7 +21,7 @@ public class IntegerValueGenerator : IValueGenerator<int>
     public IntegerValueGenerator WithMax(int max) => new IntegerValueGenerator(_random, _min, max);
     public IntegerValueGenerator WithRange(int min, int max) => new IntegerValueGenerator(_random, min, max);
 
-    public int Generate()
+    public object Generate()
     {
         return _random.Next(_min, _max);
     }
