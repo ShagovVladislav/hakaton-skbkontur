@@ -21,9 +21,24 @@ public class Program
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll",
+                policyBuilder =>
+                {
+                    policyBuilder
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .SetIsOriginAllowedToAllowWildcardSubdomains();
+                });
+        });
 
 
         var app = builder.Build();
+        
+        app.UseCors("AllowAll");
 
         app.UseSwagger(options => { options.RouteTemplate = "api/swagger/{documentName}/swagger.json"; });
         app.UseSwaggerUI(options =>
