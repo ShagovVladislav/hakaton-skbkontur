@@ -11,7 +11,14 @@ public class MockController(IMockService mockService) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> GetMockData([FromBody] MockDataRequest request)
     {
-        var result = await mockService.GenerateMockDataWithAiAsync(request.Schema);
+        var result = await mockService.GenerateMockData(request.Schema);
+        return Ok(result);
+    }
+
+    [HttpPost("ai")]
+    public async Task<IActionResult> GetMockDataWithAi(string description)
+    {
+        var result = await mockService.GenerateMockDataWithAi(description);
         return Ok(result);
     }
 }

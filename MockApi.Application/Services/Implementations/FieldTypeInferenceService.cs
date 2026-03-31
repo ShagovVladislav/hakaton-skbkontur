@@ -73,6 +73,57 @@ public class FieldTypeInferenceService(HttpClient http, IConfiguration configura
         return ProcessFieldsRecursive(fields, predictions);
     }
 
+    public async Task<string> GenerateMockDataFromDescriptionAsync(string description)
+    {
+        var requestBody = new
+        {
+            model = "google/gemini-2.0-flash-001",
+            messages = new[]
+            {
+                new
+                {
+                    role = "system",
+                    content = "You are a specialized mock data generator. " +
+                              "Your task: Return ONLY a raw JSON object based on the user's description. " +
+                              "DO NOT include any explanations, markdown code blocks (```json), or text outside the JSON. " +
+                              "Use realistic data for values. ONLY RUSSIAN LANGUAGE"
+                },
+                new { role = "user", content = description }
+            },
+            response_format = new { type = "json_object" },
+            temperature = 0.7,
+            max_tokens = 1500
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, OpenRouterUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+        request.Headers.Add("HTTP-Referer", "http://localhost:5255");
+        request.Headers.Add("X-Title", "MockApi.Development");
+        request.Content = JsonContent.Create(requestBody);
+
+        var response = await http.SendAsync(request);
+    
+        if (!response.IsSuccessStatusCode)
+            return $"{{\"error\": \"AI provider returned {response.StatusCode}\"}}";
+
+        var jsonResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
+    
+        // Извлекаем строку контента из ответа OpenRouter
+        var content = jsonResponse
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString();
+
+        if (string.IsNullOrWhiteSpace(content)) 
+            return "{}";
+
+        // На всякий случай чистим от возможных markdown-тегов, если модель их добавила
+        content = Regex.Replace(content, "```[a-z]*|```", "").Trim();
+
+        return content;
+    }
+
     private List<string> GetEmptyKeysRecursive(Dictionary<string, object?> fields)
     {
         var keys = new List<string>();
