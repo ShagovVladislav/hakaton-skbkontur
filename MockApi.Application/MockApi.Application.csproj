@@ -10,4 +10,8 @@
       <Folder Include="Services\Implementations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MockApi.Domain\MockApi.Domain.csproj" />
+    </ItemGroup>
+
 </Project>

@@ -1,10 +1,12 @@
 using MockApi.Application.Values.Abstractions;
+using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
 public class FirstNameGenerationalValue : GenerationalValue<string>
 {
     private readonly Random _random;
+    private readonly FieldTypeEnum _fieldType = FieldTypeEnum.FirstName;
 
     private readonly string[] _names =
     [
@@ -22,4 +24,11 @@ public class FirstNameGenerationalValue : GenerationalValue<string>
     {
         return _names[_random.Next(_names.Length)];
     }
+
+    public bool CanHandle(FieldTypeEnum value)
+    {
+        return value == _fieldType;
+    }
+
+    public object GenerateUntyped() => Generate();
 }
