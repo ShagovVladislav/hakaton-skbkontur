@@ -21,14 +21,19 @@ public class MockService : IMockService
             .ToDictionary(x => x.Type, x => x.Generator!);
     }
     
-    public async Task<Dictionary<string, object>> GenerateMockDataWithAiAsync(Dictionary<string, object?> schema)
+    public async Task<Dictionary<string, object>> GenerateMockData(Dictionary<string, object?> schema)
     {
         var enrichedSchema = await _fieldTypeInferenceService.InferAndFillMissingTypesAsync(schema);
 
-        return GenerateMockData(enrichedSchema!);
+        return ProcessSchemaRecursive(enrichedSchema);
     }
 
-    private Dictionary<string, object> GenerateMockData(Dictionary<string, object> schema)
+    public async Task<string> GenerateMockDataWithAi(string description)
+    {
+        return await _fieldTypeInferenceService.GenerateMockDataFromDescriptionAsync(description);
+    }
+
+    private Dictionary<string, object> ProcessSchemaRecursive(Dictionary<string, object> schema)
     {
         var result = new Dictionary<string, object>(schema.Count);
 
