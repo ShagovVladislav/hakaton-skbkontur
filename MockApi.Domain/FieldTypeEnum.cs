@@ -8,10 +8,11 @@ public enum FieldTypeEnum
     String,
     Integer,
     Boolean,
-    Double,
     DateTime,
-    Guid,
+    Date,
+    Double,
     Float,
     Decimal,
-    Array
+    Array,
+    Guid
 }
