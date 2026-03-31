@@ -3,12 +3,12 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class DateGenerationalValue : GenerationalValue<string>
+public class DateValueGenerator : IValueGenerator<string>
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Date;
 
-    public DateGenerationalValue(Random? random = null)
+    public DateValueGenerator(Random? random = null)
     {
         _random = random ?? new Random();
     }

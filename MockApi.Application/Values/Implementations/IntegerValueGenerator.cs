@@ -3,24 +3,24 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class BooleanGenerationalValue : GenerationalValue<bool>
+public class IntegerValueGenerator : IValueGenerator<int>
 {
     private readonly Random _random;
-    private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Boolean;
+    private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Integer;
 
-    public BooleanGenerationalValue(Random? random = null)
+    public IntegerValueGenerator(Random? random)
     {
         _random = random ?? new Random();
     }
 
-    public bool Generate()
+    public int Generate()
     {
-        return _random.Next() % 2 == 0;
+        return _random.Next();
     }
 
     public bool CanHandle(FieldTypeEnum value)
     {
-        return value == _fieldType;
+        return value == FieldTypeEnum.Integer;
     }
 
     public object GenerateUntyped() => Generate();

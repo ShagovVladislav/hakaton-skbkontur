@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class FirstNameGenerationalValue : GenerationalValue<string>
+public class FirstNameValueGenerator : IValueGenerator<string>
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.FirstName;
@@ -13,7 +13,7 @@ public class FirstNameGenerationalValue : GenerationalValue<string>
         "John", "Bob", "Matvey", "Danil", "Vlad", "Slava"
     ];
 
-    public FirstNameGenerationalValue(Random? random = null, string[]? names = null)
+    public FirstNameValueGenerator(Random? random = null, string[]? names = null)
     {
         _random = random ?? new Random();
         if (names != null)

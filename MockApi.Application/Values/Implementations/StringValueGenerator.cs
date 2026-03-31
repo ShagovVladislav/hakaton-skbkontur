@@ -4,14 +4,12 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class StringGenerationalValue<T> : GenerationalValue<string>
+public class StringValueGenerator<T> : IValueGenerator<string>
 {
     public bool CanHandle(FieldTypeEnum value)
     {
         return value == FieldTypeEnum.String;
     }
-
-    object IGenerationalValue.GenerateUntyped() => Generate();
 
     public string Generate()
     {

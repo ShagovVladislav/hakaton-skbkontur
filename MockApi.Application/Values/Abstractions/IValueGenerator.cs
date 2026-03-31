@@ -2,6 +2,8 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Abstractions;
 
-public interface GenerationalValue<out T> : IGenerationalValue{
+public interface IValueGenerator<out T>
+{
     public T Generate();
+    bool CanHandle(FieldTypeEnum value);
 }
