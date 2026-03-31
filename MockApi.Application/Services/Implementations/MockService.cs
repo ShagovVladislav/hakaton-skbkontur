@@ -1,7 +1,7 @@
 using MockApi.Application.Services.Abstractions;
 using MockApi.Application.Values.Abstractions;
 using MockApi.Domain;
-using System.Text.Json;
+using MockApi.Application.Dto;
 
 namespace MockApi.Application.Services.Implementations;
 
@@ -10,28 +10,26 @@ public class MockService : IMockService
     private readonly Dictionary<FieldTypeEnum, IValueGenerator> _generatorsCache;
     private readonly IFieldTypeInferenceService _fieldTypeInferenceService;
 
-    public MockService(IEnumerable<IValueGenerator> generators,
+    public MockService(
+        IEnumerable<IValueGenerator> generators,
         IFieldTypeInferenceService fieldTypeInferenceService)
     {
-        var generatorsList = generators.ToList();
         _fieldTypeInferenceService = fieldTypeInferenceService;
 
+        var generatorsList = generators.ToList();
         _generatorsCache = Enum.GetValues<FieldTypeEnum>()
-            .Select(type => new
-            {
-                Type = type,
-                Generator = generatorsList.FirstOrDefault(g => g.CanHandle(type))
-            })
-            .Where(x => x.Generator != null)
-            .ToDictionary(x => x.Type, x => x.Generator!);
+            .ToDictionary(
+                type => type,
+                type => generatorsList.FirstOrDefault(g => g.CanHandle(type))!
+            )
+            .Where(x => x.Value != null)
+            .ToDictionary(x => x.Key, x => x.Value);
     }
 
-    public async Task<Dictionary<string, object>> GenerateMockData(Dictionary<string, object?> schema)
+    public async Task<Dictionary<string, object>> GenerateMockData(Dictionary<string, FieldConfig?> schema)
     {
-        var enrichedSchema =
-            await _fieldTypeInferenceService.InferAndFillMissingTypesAsync(schema);
-
-        return await ProcessSchemaRecursive(enrichedSchema);
+        var enrichedSchema = await _fieldTypeInferenceService.InferAndFillMissingTypesAsync(schema);
+        return ProcessSchemaRecursive(enrichedSchema);
     }
 
     public async Task<string> GenerateMockDataWithAi(string description)
@@ -39,65 +37,63 @@ public class MockService : IMockService
         return await _fieldTypeInferenceService.GenerateMockDataFromDescriptionAsync(description);
     }
 
-    private async Task<Dictionary<string, object>> ProcessSchemaRecursive(
-        Dictionary<string, object> schema)
-    {
-        var result = new Dictionary<string, object>(schema.Count);
-
-        foreach (var field in schema)
-        {
-            result[field.Key] = field.Value switch
-            {
-                Dictionary<string, object> nestedDict =>
-                    await ProcessSchemaRecursive(nestedDict),
-
-                JsonElement { ValueKind: JsonValueKind.Object } element =>
-                    await ProcessJsonObjectAsync(element),
-
-                JsonElement { ValueKind: JsonValueKind.String } element =>
-                    ProcessSimpleField(element.GetString()),
-
-                string typeString =>
-                    ProcessSimpleField(typeString),
-
-                _ => "Invalid schema format"
-            };
-        }
-
-        return result;
-    }
-
-    private async Task<Dictionary<string, object>> ProcessJsonObjectAsync(JsonElement element)
+    private Dictionary<string, object> ProcessSchemaRecursive(Dictionary<string, FieldConfig> schema)
     {
         var result = new Dictionary<string, object>();
 
-        foreach (var property in element.EnumerateObject())
+        foreach (var (key, config) in schema)
         {
-            result[property.Name] = property.Value.ValueKind switch
-            {
-                JsonValueKind.Object =>
-                    await ProcessJsonObjectAsync(property.Value),
-
-                JsonValueKind.String =>
-                    ProcessSimpleField(property.Value.GetString()),
-
-                _ => "Invalid schema format"
-            };
+            result[key] = GenerateValue(config, key);
         }
 
         return result;
     }
 
-    private object ProcessSimpleField(string? typeString)
+    private object GenerateValue(FieldConfig config, string fieldName)
     {
-        if (string.IsNullOrWhiteSpace(typeString))
-            return "Unknown Type: null or empty";
+        if (config.Properties != null && config.Properties.Count > 0)
+        {
+            return ProcessSchemaRecursive(config.Properties);
+        }
 
-        if (!Enum.TryParse<FieldTypeEnum>(typeString, true, out var typeEnum))
-            return $"Unknown Type: {typeString}";
+        if (config.Type == FieldTypeEnum.Array)
+        {
+            return GenerateArray(config, fieldName);
+        }
 
-        return _generatorsCache.TryGetValue(typeEnum, out var generator)
-            ? generator.Generate()
-            : $"Unsupported type: {typeString}";
+        return GenerateSimpleField(config, fieldName);
+    }
+
+    private List<object> GenerateArray(FieldConfig config, string fieldName)
+    {
+        var list = new List<object>();
+        var size = config.ArraySize ?? 5;
+
+        if (config.Items == null)
+        {
+            return list;
+        }
+
+        for (int i = 0; i < size; i++)
+        {
+            list.Add(GenerateValue(config.Items, fieldName));
+        }
+
+        return list;
+    }
+
+    private object GenerateSimpleField(FieldConfig config, string fieldName)
+    {
+        if (config.Type == null)
+            return "Type is not defined";
+
+        if (!_generatorsCache.TryGetValue(config.Type.Value, out var generator))
+            return $"Unsupported type: {config.Type}";
+        
+        var mode = Enum.TryParse<StringMode>(fieldName, true, out var result) 
+            ? result 
+            : StringMode.None;
+        
+        return generator.WithMode(mode).Generate(config);
     }
 }

@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace MockApi.Domain;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum StringMode
 {
     Random,
@@ -8,5 +11,6 @@ public enum StringMode
     LastName,
     FullName,
     Email,
-    PhoneNumber
+    Phone,
+    None
 }

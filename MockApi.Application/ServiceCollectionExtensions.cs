@@ -20,6 +20,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValueGenerator, DecimalValueGenerator>();
         services.AddScoped<IValueGenerator, FloatValueGenerator>();
         services.AddScoped<IValueGenerator, GuidValueGenerator>();
+        services.AddScoped<IValueGenerator, DoubleValueGenerator>();
+
         
         services.AddScoped<IMockService, MockService>();
 

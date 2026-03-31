@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+using MockApi.Application.Dto;
 using MockApi.Application.Services.Abstractions;
 using MockApi.Domain;
 
@@ -15,12 +16,12 @@ public class FieldTypeInferenceService(HttpClient http, IConfiguration configura
 
     private const string OpenRouterUrl = "https://openrouter.ai/api/v1/chat/completions";
 
-    public async Task<Dictionary<string, object>> InferAndFillMissingTypesAsync(Dictionary<string, object?> fields)
+    public async Task<Dictionary<string, FieldConfig>> InferAndFillMissingTypesAsync(Dictionary<string, FieldConfig> fields)
     {
         var keysToInfer = GetEmptyKeysRecursive(fields);
-        if (keysToInfer.Count == 0) return fields!;
+        if (keysToInfer.Count == 0) return fields;
 
-        var allowedTypes = string.Join(",", Enum.GetNames<FieldTypeEnum>());
+        var allowedTypes = string.Join(", ", Enum.GetNames<FieldTypeEnum>());
 
         var requestBody = new
         {
@@ -31,8 +32,8 @@ public class FieldTypeInferenceService(HttpClient http, IConfiguration configura
                 {
                     role = "system",
                     content = $"Return ONLY JSON. Use ONLY these types: [{allowedTypes}]. " +
-                              "NEVER return the key name as a value. " +
-                              "Example: if key is 'email', return 'String'. If key is 'age', return 'Int'."
+                              "Predict the most suitable data type for each key. " +
+                              "Example: 'email' -> 'String', 'age' -> 'Integer', 'isValid' -> 'Boolean'."
                 },
                 new { role = "user", content = JsonSerializer.Serialize(keysToInfer) }
             },
@@ -48,29 +49,28 @@ public class FieldTypeInferenceService(HttpClient http, IConfiguration configura
         request.Content = JsonContent.Create(requestBody);
 
         var response = await http.SendAsync(request);
-        if (!response.IsSuccessStatusCode) return fields!;
+        if (!response.IsSuccessStatusCode) return fields;
 
         var jsonResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
         var content = jsonResponse.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
 
-        if (string.IsNullOrWhiteSpace(content)) return fields!;
+        if (string.IsNullOrWhiteSpace(content)) return fields;
 
         content = Regex.Replace(content, "```[a-z]*|```", "").Trim();
 
         var predictions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         try
         {
-            var raw = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(content);
-            if (raw != null)
-                foreach (var p in raw)
-                    predictions[p.Key] = p.Value.ToString();
+            var raw = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+            if (raw != null) predictions = raw;
         }
         catch
         {
             // ignored
         }
 
-        return ProcessFieldsRecursive(fields, predictions);
+        ProcessFieldsRecursive(fields, predictions);
+        return fields;
     }
 
     public async Task<string> GenerateMockDataFromDescriptionAsync(string description)
@@ -84,15 +84,14 @@ public class FieldTypeInferenceService(HttpClient http, IConfiguration configura
                 {
                     role = "system",
                     content = "You are a specialized mock data generator. " +
-                              "Your task: Return ONLY a raw JSON object based on the user's description. " +
-                              "DO NOT include any explanations, markdown code blocks (```json), or text outside the JSON. " +
-                              "Use realistic data for values. ONLY RUSSIAN LANGUAGE"
+                              "Return ONLY raw JSON object. NO markdown, NO text. " +
+                              "Use realistic data. ONLY RUSSIAN LANGUAGE."
                 },
                 new { role = "user", content = description }
             },
             response_format = new { type = "json_object" },
-            temperature = 0.7,
-            max_tokens = 1500
+            temperature = 0,
+            max_tokens = 500
         };
 
         using var request = new HttpRequestMessage(HttpMethod.Post, OpenRouterUrl);
@@ -102,95 +101,63 @@ public class FieldTypeInferenceService(HttpClient http, IConfiguration configura
         request.Content = JsonContent.Create(requestBody);
 
         var response = await http.SendAsync(request);
-    
-        if (!response.IsSuccessStatusCode)
-            return $"{{\"error\": \"AI provider returned {response.StatusCode}\"}}";
+        if (!response.IsSuccessStatusCode) return $"{{\"error\": \"AI provider error\"}}";
 
         var jsonResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
-    
-        // Извлекаем строку контента из ответа OpenRouter
-        var content = jsonResponse
-            .GetProperty("choices")[0]
-            .GetProperty("message")
-            .GetProperty("content")
-            .GetString();
+        var content = jsonResponse.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
 
-        if (string.IsNullOrWhiteSpace(content)) 
-            return "{}";
-
-        // На всякий случай чистим от возможных markdown-тегов, если модель их добавила
-        content = Regex.Replace(content, "```[a-z]*|```", "").Trim();
-
-        return content;
+        return string.IsNullOrWhiteSpace(content) ? "{}" : Regex.Replace(content, "```[a-z]*|```", "").Trim();
     }
 
-    private List<string> GetEmptyKeysRecursive(Dictionary<string, object?> fields)
+    private List<string> GetEmptyKeysRecursive(Dictionary<string, FieldConfig> fields)
     {
         var keys = new List<string>();
-        foreach (var (key, value) in fields)
+        foreach (var (key, config) in fields)
         {
-            if (IsValueEmpty(value)) keys.Add(key);
-            else
-                switch (value)
-                {
-                    case JsonElement { ValueKind: JsonValueKind.Object } el:
-                        keys.AddRange(
-                            GetEmptyKeysRecursive(
-                                JsonSerializer.Deserialize<Dictionary<string, object?>>(el.GetRawText())!));
-                        break;
-                    case Dictionary<string, object?> sub:
-                        keys.AddRange(GetEmptyKeysRecursive(sub));
-                        break;
-                }
+            if (config.Type == null && (config.Properties == null || config.Properties.Count == 0))
+            {
+                keys.Add(key);
+            }
+            if (config.Properties != null && config.Properties.Count > 0)
+            {
+                keys.AddRange(GetEmptyKeysRecursive(config.Properties));
+            }
+            if (config.Type == FieldTypeEnum.Array && config.Items != null)
+            {
+                var subDict = new Dictionary<string, FieldConfig> { { $"{key}_item", config.Items } };
+                keys.AddRange(GetEmptyKeysRecursive(subDict));
+            }
         }
-
         return keys;
     }
 
-    private Dictionary<string, object> ProcessFieldsRecursive(Dictionary<string, object?> fields,
-        Dictionary<string, string> predictions)
+    private void ProcessFieldsRecursive(Dictionary<string, FieldConfig> fields, Dictionary<string, string> predictions)
     {
-        var result = new Dictionary<string, object>();
-        var validTypes = Enum.GetNames<FieldTypeEnum>().ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var (key, value) in fields)
+        foreach (var (key, config) in fields)
         {
-            switch (value)
+            if (config.Type == null && (config.Properties == null || config.Properties.Count == 0))
             {
-                case JsonElement { ValueKind: JsonValueKind.Object } el:
+                if (predictions.TryGetValue(key, out var typeStr) && 
+                    Enum.TryParse<FieldTypeEnum>(typeStr, true, out var resultType))
                 {
-                    var sub = JsonSerializer.Deserialize<Dictionary<string, object?>>(el.GetRawText())!;
-                    result[key] = ProcessFieldsRecursive(sub, predictions);
-                    break;
+                    config.Type = resultType;
                 }
-                case Dictionary<string, object?> subDict:
-                    result[key] = ProcessFieldsRecursive(subDict, predictions);
-                    break;
-                default:
+                else
                 {
-                    if (IsValueEmpty(value))
-                    {
-                        if (predictions.TryGetValue(key, out var type) && validTypes.Contains(type))
-                            result[key] = type;
-                        else
-                            result[key] = "String";
-                    }
-                    else result[key] = value ?? "String";
-
-                    break;
+                    config.Type = FieldTypeEnum.String;
                 }
             }
+
+            if (config.Properties != null && config.Properties.Count > 0)
+            {
+                ProcessFieldsRecursive(config.Properties, predictions);
+            }
+
+            if (config.Type == FieldTypeEnum.Array && config.Items != null)
+            {
+                var subDict = new Dictionary<string, FieldConfig> { { $"{key}_item", config.Items } };
+                ProcessFieldsRecursive(subDict, predictions);
+            }
         }
-
-        return result;
-    }
-
-    private bool IsValueEmpty(object? value)
-    {
-        if (value == null) return true;
-        var s = value.ToString();
-        return string.IsNullOrWhiteSpace(s) || s == "empty" || (value is JsonElement e &&
-                                                                e.ValueKind == JsonValueKind.String &&
-                                                                string.IsNullOrWhiteSpace(e.GetString()));
     }
 }
