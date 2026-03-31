@@ -1,3 +1,4 @@
+using MockApi.Application.Dto;
 using MockApi.Application.Values.Abstractions;
 using MockApi.Domain;
 
@@ -8,7 +9,7 @@ public class FloatValueGenerator(Random? random) : IValueGenerator
     private readonly Random _random = random ?? new Random();
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Float;
 
-    public object Generate()
+    public object Generate(FieldConfig? config)
     {
         return (float)_random.NextDouble();
     }
@@ -18,5 +19,10 @@ public class FloatValueGenerator(Random? random) : IValueGenerator
         return value == _fieldType;
     }
 
-    public object GenerateUntyped() => Generate();
+    public IValueGenerator WithMode(StringMode mode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public object GenerateUntyped() => Generate(null);
 }

@@ -1,3 +1,4 @@
+using MockApi.Application.Dto;
 using MockApi.Application.Values.Abstractions;
 using MockApi.Domain;
 
@@ -13,7 +14,7 @@ public class DateValueGenerator : IValueGenerator
         _random = random ?? new Random();
     }
 
-    public object Generate()
+    public object Generate(FieldConfig? config)
     {
         var start = new DateOnly(1995, 1, 1);
         var today = DateOnly.FromDateTime(DateTime.Today);
@@ -26,5 +27,10 @@ public class DateValueGenerator : IValueGenerator
         return value == _fieldType;
     }
 
-    public object GenerateUntyped() => Generate();
+    public IValueGenerator WithMode(StringMode mode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public object GenerateUntyped() => Generate(null);
 }

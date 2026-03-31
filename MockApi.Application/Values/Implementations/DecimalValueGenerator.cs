@@ -1,3 +1,4 @@
+using MockApi.Application.Dto;
 using MockApi.Application.Values.Abstractions;
 using MockApi.Domain;
 
@@ -7,7 +8,7 @@ public class DecimalValueGenerator(Random random) : IValueGenerator
 {
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Decimal;
 
-    public object Generate()
+    public object Generate(FieldConfig? config)
     {
         return (Decimal)random.NextDouble();
     }
@@ -17,5 +18,10 @@ public class DecimalValueGenerator(Random random) : IValueGenerator
         return value == _fieldType;
     }
 
-    public object GenerateUntyped() => Generate();
+    public IValueGenerator WithMode(StringMode mode)
+    {
+        throw new NotImplementedException();
+    }
+
+    public object GenerateUntyped() => Generate(null);
 }
