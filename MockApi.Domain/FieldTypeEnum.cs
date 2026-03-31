@@ -8,6 +8,6 @@ public enum FieldTypeEnum
     String,
     Integer,
     Boolean,
-    Date,
+    Double,
     DateTime,
 }
