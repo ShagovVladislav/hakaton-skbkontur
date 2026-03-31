@@ -1,4 +1,3 @@
-using System.Text.Json;
 using FluentValidation;
 using MockApi.Application.Dto;
 using MockApi.Domain;
@@ -9,64 +8,25 @@ public class MockDataRequestValidator : AbstractValidator<MockDataRequest>
 {
     public MockDataRequestValidator()
     {
-        RuleFor(x => x.Schema)
-            .Must(BeValidSchema)
-            .WithMessage("Invalid schema format");
+        RuleForEach(x => x.Schema.Values)
+            .SetValidator(new FieldConfigValidator());
     }
+}
 
-    private bool BeValidSchema(Dictionary<string, object?>? schema)
+public class FieldConfigValidator : AbstractValidator<FieldConfig>
+{
+    public FieldConfigValidator()
     {
-        if (schema == null || schema.Count == 0)
-            return true;
+        RuleFor(x => x.Type)
+            .IsInEnum()
+            .When(x => x.Type.HasValue);
 
-        foreach (var field in schema)
-        {
-            switch (field.Value)
-            {
-                case null:
-                    continue;
-                case Dictionary<string, object> nested:
-                {
-                    if (!BeValidSchema(nested))
-                        return false;
-                    break;
-                }
-                case JsonElement element:
-                    switch (element.ValueKind)
-                    {
-                        case JsonValueKind.String:
-                            if (!IsValidFieldType(element.GetString()))
-                                return false;
-                            break;
-                        case JsonValueKind.Object:
-                            var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(element.GetRawText());
-                            if (!BeValidSchema(dict))
-                                return false;
-                            break;
-                        case JsonValueKind.Null:
-                            break;
-                        default:
-                            return false;
-                    }
+        RuleForEach(x => x.Properties!.Values)
+            .SetValidator(this)
+            .When(x => x.Properties != null && x.Properties.Count > 0);
 
-                    break;
-                case string str:
-                {
-                    if (!IsValidFieldType(str))
-                        return false;
-                    break;
-                }
-                default:
-                    return false;
-            }
-        }
-
-        return true;
-    }
-
-    private bool IsValidFieldType(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) 
-               || Enum.TryParse<FieldTypeEnum>(value.Trim(), ignoreCase: true, out _);
+        RuleFor(x => x.Items)
+            .SetValidator(this)
+            .When(x => x.Type == FieldTypeEnum.Array && x.Items != null);
     }
 }

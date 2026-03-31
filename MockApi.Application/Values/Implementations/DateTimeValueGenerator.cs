@@ -1,3 +1,4 @@
+using MockApi.Application.Dto;
 using MockApi.Application.Values.Abstractions;
 using MockApi.Domain;
 
@@ -13,7 +14,7 @@ public class DateTimeValueGenerator : IValueGenerator
         _random = random ?? new Random();
     }
 
-    public object Generate()
+    public object Generate(FieldConfig? config = null)
     {
         var start = new DateTime(1995, 1, 1);
         var range = (DateTime.Today - start).Days;
@@ -25,5 +26,8 @@ public class DateTimeValueGenerator : IValueGenerator
         return value == _fieldType;
     }
 
-    public object GenerateUntyped() => Generate();
+    public IValueGenerator WithMode(StringMode mode)
+    {
+        return this;
+    }
 }

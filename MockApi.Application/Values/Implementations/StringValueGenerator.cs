@@ -1,3 +1,4 @@
+using MockApi.Application.Dto;
 using MockApi.Application.Values.Abstractions;
 using MockApi.Domain;
 using MockApi.Infrastructure.StorageProviders.Abstractions;
@@ -18,22 +19,46 @@ public class StringValueGenerator : IValueGenerator
         _mode = mode;
     }
 
-    public StringValueGenerator WithMode(StringMode mode) => new StringValueGenerator(_storageProvider, _random, mode);
+    public IValueGenerator WithMode(StringMode mode) => new StringValueGenerator(_storageProvider, _random, mode);
 
     public bool CanHandle(FieldTypeEnum value)
     {
         return value == FieldTypeEnum.String;
     }
 
-    public object Generate() => _mode switch
+    public object Generate(FieldConfig? config)
     {
-        StringMode.FirstName => PickRandom(_storageProvider.GetValues("firstNames")),
-        StringMode.LastName => PickRandom(_storageProvider.GetValues("lastNames")),
-        StringMode.MiddleName => PickRandom(_storageProvider.GetValues("middleNames")),
-        StringMode.FullName => BuildFullName(),
-        StringMode.Email => BuildEmail(),
-        _ => $"str_{Guid.NewGuid().ToString()[..5]}"
-    };
+        var value = _mode switch
+        {
+            StringMode.FirstName => PickRandom(_storageProvider.GetValues("firstNames")),
+            StringMode.LastName => PickRandom(_storageProvider.GetValues("lastNames")),
+            StringMode.MiddleName => PickRandom(_storageProvider.GetValues("middleNames")),
+            StringMode.FullName => BuildFullName(),
+            StringMode.Email => BuildEmail(),
+            StringMode.Phone => BuildPhoneNumber(),
+            _ => Guid.NewGuid().ToString("N")[..Math.Min(10, 32)] 
+        };
+
+        return config is null 
+            ?  value 
+            : ApplyLengthConstraints(value, config.MinLength, config.MaxLength);
+    }
+    
+    private string ApplyLengthConstraints(string value, int? min, int? max)
+    {
+        if (max.HasValue && value.Length > max.Value)
+        {
+            value = value[..max.Value];
+        }
+
+        if (!min.HasValue || value.Length >= min.Value) return value;
+        var diff = min.Value - value.Length;
+        var padding = Guid.NewGuid().ToString("N");
+        while (padding.Length < diff) padding += Guid.NewGuid().ToString("N");
+        value += padding[..diff];
+
+        return value;
+    }
 
     private string PickRandom(string[] values) => values[_random.Next(values.Length)];
 
@@ -47,8 +72,14 @@ public class StringValueGenerator : IValueGenerator
 
     private string BuildEmail()
     {
-        var firstName = PickRandom(_storageProvider.GetValues("firstNames"));
+        var firstName = PickRandom(_storageProvider.GetValues("mailPrefix"));
         var mailPostfix = PickRandom(_storageProvider.GetValues("mailPostfixes"));
         return $"{firstName}@{mailPostfix}";   
+    }
+    
+    private string BuildPhoneNumber()
+    {
+        var phone = PickRandom(_storageProvider.GetValues("phones"));
+        return phone;
     }
 }
