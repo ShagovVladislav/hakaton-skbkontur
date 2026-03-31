@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="MockApi.Application/MockApi.Application.csproj" />
+  <Project Path="MockApi.Domain/MockApi.Domain.csproj" />
+  <Project Path="MockApi.Infrastructure/MockApi.Infrastructure.csproj" />
   <Project Path="MockApi.Presentation/MockApi.Presentation.csproj" />
 </Solution>
