@@ -8,7 +8,7 @@ namespace MockApi.Application;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddServices(this IServiceCollection services)
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddSingleton<Random>();
         services.AddHttpClient<IFieldTypeInferenceService, FieldTypeInferenceService>();

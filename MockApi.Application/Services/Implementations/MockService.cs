@@ -7,10 +7,10 @@ namespace MockApi.Application.Services.Implementations;
 
 public class MockService : IMockService
 {
-    private readonly Dictionary<FieldTypeEnum, IGenerationalValue> _generatorsCache;
+    private readonly Dictionary<FieldTypeEnum, IValueGenerator> _generatorsCache;
     private readonly IFieldTypeInferenceService _fieldTypeInferenceService;
 
-    public MockService(IEnumerable<IGenerationalValue> generators,
+    public MockService(IEnumerable<IValueGenerator> generators,
         IFieldTypeInferenceService fieldTypeInferenceService)
     {
         var generatorsList = generators.ToList();
