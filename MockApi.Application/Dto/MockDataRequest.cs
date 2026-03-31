@@ -2,5 +2,5 @@ namespace MockApi.Application.Dto;
 
 public class MockDataRequest
 {
-    public Dictionary<string, string> Schema { get; set; }
+    public Dictionary<string, object?> Schema { get; set; }
 }

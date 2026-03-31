@@ -5,12 +5,20 @@ using MockApi.Application.Services.Abstractions;
 namespace MockApi.Presentation.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("[controller]")]
 public class MockController(IMockService mockService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> GetMockData([FromBody] MockDataRequest request)
     {
-        return Ok(request.Schema);
+        var result = await mockService.GenerateMockData(request.Schema);
+        return Ok(result);
+    }
+
+    [HttpPost("ai")]
+    public async Task<IActionResult> GetMockDataWithAi(string description)
+    {
+        var result = await mockService.GenerateMockDataWithAi(description);
+        return Ok(result);
     }
 }
