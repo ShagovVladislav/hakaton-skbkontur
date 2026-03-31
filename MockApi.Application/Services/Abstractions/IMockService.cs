@@ -2,5 +2,5 @@ namespace MockApi.Application.Services.Abstractions;
 
 public interface IMockService
 {
-    Dictionary<string, object> GenerateMockData(Dictionary<string, object> schema);
+    Task<Dictionary<string, object>> GenerateMockDataWithAiAsync(Dictionary<string, object?> schema);
 }

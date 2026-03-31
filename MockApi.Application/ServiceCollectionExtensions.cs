@@ -11,7 +11,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddSingleton<Random>();
-        services.AddScoped<IGenerationalValue, StringGenerationalValue>();
+        services.AddHttpClient<IFieldTypeInferenceService, FieldTypeInferenceService>(client =>
+        {
+            client.Timeout = TimeSpan.FromMinutes(3); // Увеличиваем до 3 минут
+        });        services.AddScoped<IGenerationalValue, StringGenerationalValue>();
         services.AddScoped<IGenerationalValue, BooleanGenerationalValue>();
         services.AddScoped<IGenerationalValue, DateTimeGenerationalValue>();
         services.AddScoped<IGenerationalValue, FirstNameGenerationalValue>();

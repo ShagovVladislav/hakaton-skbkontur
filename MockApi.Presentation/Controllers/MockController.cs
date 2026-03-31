@@ -9,9 +9,9 @@ namespace MockApi.Presentation.Controllers;
 public class MockController(IMockService mockService) : ControllerBase
 {
     [HttpPost]
-    public IActionResult GetMockData([FromBody] MockDataRequest request)
+    public async Task<IActionResult> GetMockData([FromBody] MockDataRequest request)
     {
-        var result = mockService.GenerateMockData(request.Schema);
+        var result = await mockService.GenerateMockDataWithAiAsync(request.Schema);
         return Ok(result);
     }
 }

@@ -22,6 +22,4 @@ public class IntegerGenerationalValue : IGenerationalValue
     {
         return value == FieldTypeEnum.Integer;
     }
-
-    public object GenerateUntyped() => Generate();
 }

@@ -8,18 +8,27 @@ namespace MockApi.Application.Services.Implementations;
 public class MockService : IMockService
 {
     private readonly Dictionary<FieldTypeEnum, IGenerationalValue> _generatorsCache;
+    private readonly IFieldTypeInferenceService _fieldTypeInferenceService;
 
-    public MockService(IEnumerable<IGenerationalValue> generators)
+    public MockService(IEnumerable<IGenerationalValue> generators, IFieldTypeInferenceService fieldTypeInferenceService)
     {
         var generatorsList = generators.ToList();
+        _fieldTypeInferenceService  = fieldTypeInferenceService;
         
         _generatorsCache = Enum.GetValues<FieldTypeEnum>()
             .Select(type => new { Type = type, Generator = generatorsList.FirstOrDefault(g => g.CanHandle(type)) })
             .Where(x => x.Generator != null)
             .ToDictionary(x => x.Type, x => x.Generator!);
     }
+    
+    public async Task<Dictionary<string, object>> GenerateMockDataWithAiAsync(Dictionary<string, object?> schema)
+    {
+        var enrichedSchema = await _fieldTypeInferenceService.InferAndFillMissingTypesAsync(schema);
 
-    public Dictionary<string, object> GenerateMockData(Dictionary<string, object> schema)
+        return GenerateMockData(enrichedSchema!);
+    }
+
+    private Dictionary<string, object> GenerateMockData(Dictionary<string, object> schema)
     {
         var result = new Dictionary<string, object>(schema.Count);
 
