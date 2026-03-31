@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class BooleanGenerationalValue : GenerationalValue<bool>
+public class BooleanGenerationalValue : IGenerationalValue
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Boolean;
@@ -13,7 +13,7 @@ public class BooleanGenerationalValue : GenerationalValue<bool>
         _random = random ?? new Random();
     }
 
-    public bool Generate()
+    public object Generate()
     {
         return _random.Next() % 2 == 0;
     }
@@ -22,6 +22,4 @@ public class BooleanGenerationalValue : GenerationalValue<bool>
     {
         return value == _fieldType;
     }
-
-    public object GenerateUntyped() => Generate();
 }

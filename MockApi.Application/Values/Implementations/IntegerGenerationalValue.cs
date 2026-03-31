@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class IntegerGenerationalValue : GenerationalValue<int>
+public class IntegerGenerationalValue : IGenerationalValue
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Integer;
@@ -13,7 +13,7 @@ public class IntegerGenerationalValue : GenerationalValue<int>
         _random = random ?? new Random();
     }
 
-    public int Generate()
+    public object Generate()
     {
         return _random.Next();
     }

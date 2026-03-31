@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class FirstNameGenerationalValue : GenerationalValue<string>
+public class FirstNameGenerationalValue : IGenerationalValue
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.FirstName;
@@ -20,7 +20,7 @@ public class FirstNameGenerationalValue : GenerationalValue<string>
             _names = names;
     }
 
-    public string Generate()
+    public object Generate()
     {
         return _names[_random.Next(_names.Length)];
     }
@@ -29,6 +29,4 @@ public class FirstNameGenerationalValue : GenerationalValue<string>
     {
         return value == _fieldType;
     }
-
-    public object GenerateUntyped() => Generate();
 }

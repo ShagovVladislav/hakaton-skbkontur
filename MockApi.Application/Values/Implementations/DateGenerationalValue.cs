@@ -3,7 +3,7 @@ using MockApi.Domain;
 
 namespace MockApi.Application.Values.Implementations;
 
-public class DateGenerationalValue : GenerationalValue<string>
+public class DateGenerationalValue : IGenerationalValue
 {
     private readonly Random _random;
     private readonly FieldTypeEnum _fieldType = FieldTypeEnum.Date;
@@ -13,7 +13,7 @@ public class DateGenerationalValue : GenerationalValue<string>
         _random = random ?? new Random();
     }
 
-    public string Generate()
+    public object Generate()
     {
         var start = new DateTime(1995, 1, 1);
         var range = (DateTime.Today - start).Days;
@@ -25,6 +25,4 @@ public class DateGenerationalValue : GenerationalValue<string>
     {
         return value == _fieldType;
     }
-
-    public object GenerateUntyped() => Generate();
 }
