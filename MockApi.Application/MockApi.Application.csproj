@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MockApi.Domain\MockApi.Domain.csproj" />
+      <ProjectReference Include="..\MockApi.Infrastructure\MockApi.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

@@ -10,10 +10,4 @@ public enum FieldTypeEnum
     Boolean,
     Date,
     DateTime,
-    FirstName,
-    LastName,
-    MiddleName,
-    FullName,
-    Email,
-    PhoneNumber
 }
