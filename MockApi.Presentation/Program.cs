@@ -18,15 +18,20 @@ public class Program
         builder.Services.AddValidatorsFromAssemblyContaining<MockDataRequestValidator>();
         builder.Services.AddApplicationServices();
         builder.Services.AddInfrastructureServices();
-        
+
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
 
         var app = builder.Build();
 
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwagger(options => { options.RouteTemplate = "api/swagger/{documentName}/swagger.json"; });
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/api/swagger/v1/swagger.json", "RefSystem Backend V1");
+            options.RoutePrefix = "api/swagger";
+        });
+
 
         app.UseHttpsRedirection();
 

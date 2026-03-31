@@ -9,6 +9,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["MockApi.Presentation/MockApi.Presentation.csproj", "MockApi.Presentation/"]
 COPY ["MockApi.Application/MockApi.Application.csproj", "MockApi.Application/"]
+COPY ["MockApi.Infrastructure/MockApi.Infrastructure.csproj", "MockApi.Infrastructure/"]
 COPY ["MockApi.Domain/MockApi.Domain.csproj", "MockApi.Domain/"]
 RUN dotnet restore "MockApi.Presentation/MockApi.Presentation.csproj"
 COPY . .
